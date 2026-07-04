@@ -7,8 +7,6 @@ blueprint:
     Review every entity and safety setting before enabling. Physical high-limit,
     flow and electrical protection remain required.
   domain: automation
-  homeassistant:
-    min_version: 2024.10.0
   input:
     helpers:
       name: Enable helpers
