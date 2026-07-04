@@ -1,0 +1,2031 @@
+blueprint:
+  name: Heishamon Control - Panasonic Aquarea v4
+  description: >-
+    V4 safety-first Heishamon/Panasonic heat-pump controller with delayed hydraulic
+    emitter shutdown, demand-checked heat/cool transitions, configurable cooling,
+    DHW and legionella targets, sensor-failure lockout, and electric DHW assist.
+    Review every entity and safety setting before enabling. Physical high-limit,
+    flow and electrical protection remain required.
+  domain: automation
+  input:
+    helpers:
+      name: Enable helpers
+      icon: mdi:toggle-switch
+      input:
+        enable_heating:
+          name: Enable heating input_boolean
+          default: input_boolean.heishamon_enable_heating
+          selector:
+            entity:
+              filter:
+                domain: input_boolean
+        enable_cooling:
+          name: Enable cooling input_boolean
+          default: input_boolean.heishamon_enable_cooling
+          selector:
+            entity:
+              filter:
+                domain: input_boolean
+        enable_dhw:
+          name: Enable DHW input_boolean
+          default: input_boolean.heishamon_enable_dhw
+          selector:
+            entity:
+              filter:
+                domain: input_boolean
+        solar_control:
+          name: Solar control input_boolean
+          default: input_boolean.heishamon_solar_control
+          selector:
+            entity:
+              filter:
+                domain: input_boolean
+        powercontrol_sp_increase:
+          name: Heating power-control SP increase input_number
+          default: input_number.heishamon_powercontrol_sp_increase
+          selector:
+            entity:
+              filter:
+                domain: input_number
+    heat_pump:
+      name: Panasonic / Heishamon entities
+      icon: mdi:heat-pump
+      input:
+        hp_power_switch:
+          name: Heat pump main on/off switch
+          default: switch.panasonic_heat_pump_main_heatpump_state
+          selector:
+            entity:
+              filter:
+                domain: switch
+        hp_force_dhw_switch:
+          name: Force DHW switch
+          default: switch.panasonic_heat_pump_main_force_dhw_state
+          selector:
+            entity:
+              filter:
+                domain: switch
+        hp_defrost_switch:
+          name: Defrosting state switch
+          default: switch.panasonic_heat_pump_main_defrosting_state
+          selector:
+            entity:
+              filter:
+                domain: switch
+        hp_compressor_binary:
+          name: Compressor running binary sensor
+          default: binary_sensor.aquarea_compressor_status
+          selector:
+            entity:
+              filter:
+                domain: binary_sensor
+        hp_circulation_pump_binary:
+          name: Circulation pump running binary sensor
+          description: Use the water/circulation-pump running sensor if available. If you do not have one, use the compressor running sensor as a safe fallback, but a real pump/flow sensor is better.
+          default: binary_sensor.aquarea_compressor_status
+          selector:
+            entity:
+              filter:
+                domain: binary_sensor
+        hp_compressor_freq:
+          name: Compressor frequency sensor
+          default: sensor.panasonic_heat_pump_main_compressor_freq
+          selector:
+            entity:
+              filter:
+                domain: sensor
+        hp_operating_mode:
+          name: Operating mode select
+          default: select.panasonic_heat_pump_main_operating_mode_state
+          selector:
+            entity:
+              filter:
+                domain: select
+        hp_quiet_mode:
+          name: Quiet mode select
+          default: select.panasonic_heat_pump_main_quiet_mode_level
+          selector:
+            entity:
+              filter:
+                domain: select
+        hp_z1_climate:
+          name: Zone 1 climate entity
+          default: climate.panasonic_heat_pump_main_z1_temp
+          selector:
+            entity:
+              filter:
+                domain: climate
+        hp_z1_heat_request_temp:
+          name: Z1 heat request temperature number
+          default: number.panasonic_heat_pump_main_z1_heat_request_temp
+          selector:
+            entity:
+              filter:
+                domain: number
+        hp_z1_cool_request_temp:
+          name: Z1 cool request temperature number
+          default: number.panasonic_heat_pump_main_z1_cool_request_temp
+          selector:
+            entity:
+              filter:
+                domain: number
+        hp_fake_demandcontrol:
+          name: Fake demand control number
+          default: number.panasonic_heat_pump_main_fakedemandcontrol
+          selector:
+            entity:
+              filter:
+                domain: number
+        hp_dhw_target_temp:
+          name: DHW target temperature number
+          default: number.panasonic_heat_pump_main_dhw_target_temp
+          selector:
+            entity:
+              filter:
+                domain: number
+        hp_dhw_heat_delta:
+          name: DHW heat delta number
+          default: number.panasonic_heat_pump_main_dhw_heat_delta
+          selector:
+            entity:
+              filter:
+                domain: number
+        hp_dhw_temp:
+          name: DHW temperature sensor
+          default: sensor.panasonic_heat_pump_main_dhw_temp
+          selector:
+            entity:
+              filter:
+                domain: sensor
+        hp_outside_temp:
+          name: Panasonic outside temperature sensor
+          default: sensor.panasonic_heat_pump_main_outside_temp
+          selector:
+            entity:
+              filter:
+                domain: sensor
+        hp_outlet_temp:
+          name: Main outlet water temperature sensor
+          default: sensor.panasonic_heat_pump_main_main_outlet_temp
+          selector:
+            entity:
+              filter:
+                domain: sensor
+        hp_threeway_valve:
+          name: Three-way valve state sensor
+          default: sensor.panasonic_heat_pump_main_threeway_valve_state
+          selector:
+            entity:
+              filter:
+                domain: sensor
+        hp_s0_watt:
+          name: Heat pump S0 watt sensor
+          default: sensor.panasonic_heat_pump_s0_watt_1
+          selector:
+            entity:
+              filter:
+                domain: sensor
+    room_weather:
+      name: Room / outside / water-use sensors
+      icon: mdi:home-thermometer
+      input:
+        living_temp_primary:
+          name: Living-room temperature primary
+          default: sensor.weather_livingroom_livingroom_temperature
+          selector:
+            entity:
+              filter:
+                domain: sensor
+        living_temp_backup:
+          name: Living-room temperature backup
+          default: sensor.weather_livingroom_temperature_2
+          selector:
+            entity:
+              filter:
+                domain: sensor
+        local_outside_temp:
+          name: Local outside temperature sensor
+          default: sensor.lumi_lumi_weather_temperature
+          selector:
+            entity:
+              filter:
+                domain: sensor
+        bathroom_humidity:
+          name: Bathroom humidity sensor
+          default: sensor.weather_bathroom_humidity_2
+          selector:
+            entity:
+              filter:
+                domain: sensor
+        water_pulse_meter:
+          name: Water pulse / flow sensor
+          default: sensor.esphome_web_1afec4_water_pulse_meter
+          selector:
+            entity:
+              filter:
+                domain: sensor
+    grid_and_pv:
+      name: Grid / PV / EV sensors
+      icon: mdi:solar-power
+      input:
+        meter_mode:
+          name: PAP/SAP mode sensor
+          default: sensor.electricity_meter_consumption_pap_or_sap
+          selector:
+            entity:
+              filter:
+                domain: sensor
+        pap_power_production:
+          name: PAP production power sensor
+          default: sensor.electricity_meter_pap_power_production
+          selector:
+            entity:
+              filter:
+                domain: sensor
+        sap_power_production:
+          name: SAP production power sensor
+          default: sensor.electricity_meter_sap_power_production
+          selector:
+            entity:
+              filter:
+                domain: sensor
+        pap_power_consumption:
+          name: PAP consumption power sensor
+          default: sensor.electricity_meter_pap_power_consumption
+          selector:
+            entity:
+              filter:
+                domain: sensor
+        sap_power_consumption:
+          name: SAP consumption power sensor
+          default: sensor.electricity_meter_sap_power_consumption
+          selector:
+            entity:
+              filter:
+                domain: sensor
+        power_netto_pap:
+          name: Netto PAP power sensor
+          default: sensor.power_netto_pap
+          selector:
+            entity:
+              filter:
+                domain: sensor
+        power_netto_sap:
+          name: Netto SAP power sensor
+          default: sensor.power_netto_sap
+          selector:
+            entity:
+              filter:
+                domain: sensor
+        ev_mode_select:
+          name: SmartEVSE mode select
+          default: select.smartevse_45243_mode
+          selector:
+            entity:
+              filter:
+                domain: select
+        ev_charge_current:
+          name: SmartEVSE charge-current sensor
+          default: sensor.smartevse_45243_chargecurrent
+          selector:
+            entity:
+              filter:
+                domain: sensor
+        ev_state:
+          name: SmartEVSE state sensor
+          default: sensor.smartevse_45243_state
+          selector:
+            entity:
+              filter:
+                domain: sensor
+    emitters_and_heaters:
+      name: Emitters / boiler / inline heater
+      icon: mdi:radiator
+      input:
+        fancoil_livingroom:
+          name: Living-room fancoil switch
+          default: switch.shelly_plug_s_e437ab_relay_0
+          selector:
+            entity:
+              filter:
+                domain: switch
+        floor_heating:
+          name: Floor-heating / floor-cooling pump switch
+          default: switch.shelly_plug_s_1c1f34_relay_0
+          selector:
+            entity:
+              filter:
+                domain: switch
+        fancoil_upstairs:
+          name: Upstairs fancoil switch
+          default: switch.plug_fancoil_upstairs_switch_0
+          selector:
+            entity:
+              filter:
+                domain: switch
+        cool_floor_permit_switch:
+          name: Dedicated floor-cooling dewpoint permit
+          description: >-
+            A dedicated binary sensor, input_boolean or switch that is ON only
+            while floor cooling is safe from condensation. Do not select the
+            floor-pump switch itself.
+          selector:
+            entity:
+              filter:
+                - domain: binary_sensor
+                - domain: input_boolean
+                - domain: switch
+        inline_heater:
+          name: DHW inline heater switch
+          default: switch.shellyplug_eb8702
+          selector:
+            entity:
+              filter:
+                domain: switch
+        boiler_heater:
+          name: Boiler electric heater plug
+          default: switch.plug_boiler_heater_switch_0
+          selector:
+            entity:
+              filter:
+                domain: switch
+        boiler_dimmer:
+          name: Boiler dimmer fan entity
+          default: fan.dimmeradruino_boiler_dimmer
+          selector:
+            entity:
+              filter:
+                domain: fan
+        boiler_power:
+          name: Boiler electric heater power sensor
+          default: sensor.plug_boiler_heater_switch_0_power
+          selector:
+            entity:
+              filter:
+                domain: sensor
+    setpoints:
+      name: Setpoints and thresholds
+      icon: mdi:tune-variant
+      collapsed: true
+      input:
+        house_temp_sp_input:
+          name: House temperature setpoint
+          default: 20
+          selector:
+            number:
+              min: 15
+              max: 25
+              step: 0.5
+              unit_of_measurement: °C
+        cooling_start_house_temp:
+          name: Cooling start house temperature
+          default: 22.5
+          selector:
+            number:
+              min: 18
+              max: 28
+              step: 0.5
+              unit_of_measurement: °C
+        cooling_stop_house_temp:
+          name: Cooling stop house temperature
+          default: 22
+          selector:
+            number:
+              min: 18
+              max: 28
+              step: 0.5
+              unit_of_measurement: °C
+        quiet_day_start_time:
+          name: Quiet mode daytime start
+          default: "07:30:00"
+          selector:
+            time:
+        active_day_start_time:
+          name: Heating/cooling emitter daytime start
+          default: "08:30:00"
+          selector:
+            time:
+        active_day_end_time:
+          name: Last cooling start / emitter daytime end
+          default: "21:30:00"
+          selector:
+            time:
+        cooling_forced_stop_time:
+          name: Cooling forced stop time
+          default: "22:00:00"
+          selector:
+            time:
+        hydraulic_emitters_stop_delay_seconds:
+          name: Hydraulic emitter stop delay after pump stops
+          description: Extra delay before fancoils/floor circuit are switched off after the circulation pump has stopped. This prevents valves closing while the pump is still pushing water.
+          default: 60
+          selector:
+            number:
+              min: 0
+              max: 600
+              step: 5
+              unit_of_measurement: s
+        cooling_transition_retry_delay_seconds:
+          name: Cooling transition retry delay
+          description: Delay before re-checking/reasserting Cool only after a start or after DHW returned to cooling.
+          default: 20
+          selector:
+            number:
+              min: 5
+              max: 20
+              step: 5
+              unit_of_measurement: s
+        cooling_water_temp_sp:
+          name: Cooling water setpoint
+          description: >-
+            Requested cooling-water temperature. Floor cooling additionally
+            requires the dedicated dewpoint permit to be ON.
+          default: 10
+          selector:
+            number:
+              min: 6
+              max: 20
+              step: 0.5
+              unit_of_measurement: °C
+        cool_floor_min_off_seconds:
+          name: Floor-cooling pump minimum off time
+          default: 1800
+          selector:
+            number:
+              min: 0
+              max: 7200
+              step: 60
+              unit_of_measurement: s
+        dhw_electric_assist_while_cooling:
+          name: Use boiler element while cooling for normal DHW recovery
+          description: When cooling is active, normal DHW temperature recovery is handled by the boiler element so cooling is not interrupted. Shower detection and legionella runs can still switch the heat pump to DHW.
+          default: true
+          selector:
+            boolean:
+        dhw_shower_humidity_threshold:
+          name: Shower detection humidity threshold
+          default: 90
+          selector:
+            number:
+              min: 50
+              max: 100
+              step: 1
+              unit_of_measurement: "%"
+        dhw_shower_detection_seconds:
+          name: Shower detection confirmation time
+          description: Humidity and water flow must both remain in range for this long.
+          default: 30
+          selector:
+            number:
+              min: 0
+              max: 300
+              step: 5
+              unit_of_measurement: s
+        dhw_shower_flow_min:
+          name: Shower detection minimum water-flow pulse
+          default: 2
+          selector:
+            number:
+              min: 0
+              max: 20
+              step: 0.5
+        dhw_shower_flow_max:
+          name: Shower detection maximum water-flow pulse
+          default: 10
+          selector:
+            number:
+              min: 0
+              max: 50
+              step: 0.5
+        dhw_cooling_electric_start_offset:
+          name: Cooling DHW electric assist start offset below DHW setpoint
+          description: Start boiler element while cooling when DHW temperature is below DHW setpoint minus this value.
+          default: 4
+          selector:
+            number:
+              min: 0
+              max: 15
+              step: 0.5
+              unit_of_measurement: °C
+        dhw_cooling_electric_stop_offset:
+          name: Cooling DHW electric assist stop offset below DHW setpoint
+          description: Stop boiler element while cooling when DHW temperature has recovered above DHW setpoint minus this value.
+          default: 1
+          selector:
+            number:
+              min: 0
+              max: 15
+              step: 0.5
+              unit_of_measurement: °C
+        dhw_cooling_electric_dimmer_percentage:
+          name: Cooling DHW electric assist dimmer percentage
+          default: 100
+          selector:
+            number:
+              min: 1
+              max: 100
+              step: 1
+              unit_of_measurement: "%"
+        allow_simultaneous_dhw_heaters:
+          name: Allow inline and boiler heaters simultaneously
+          description: Leave disabled unless the wiring and electrical protection are designed for the combined load.
+          default: false
+          selector:
+            boolean:
+        inline_heater_requires_flow:
+          name: Require water flow for inline heater
+          default: true
+          selector:
+            boolean:
+        inline_heater_tank_temp_threshold:
+          name: Inline-heater tank temperature threshold
+          default: 44
+          selector:
+            number:
+              min: 30
+              max: 60
+              step: 0.5
+              unit_of_measurement: °C
+        inline_heater_cold_outside_threshold:
+          name: Inline-heater cold outside threshold
+          description: Below this temperature the inline heater may assist, but only with the configured flow interlock.
+          default: -5
+          selector:
+            number:
+              min: -20
+              max: 5
+              step: 0.5
+              unit_of_measurement: °C
+        heating_outside_stop_temp:
+          name: Heating outside stop temperature
+          default: 19.5
+          selector:
+            number:
+              min: 10
+              max: 25
+              step: 0.5
+              unit_of_measurement: °C
+        house_temp_deviation_factor:
+          name: Room-temperature compensation factor
+          default: 3
+          selector:
+            number:
+              min: 0
+              max: 10
+              step: 0.5
+        house_temp_deviation_max_up:
+          name: Heating stop / upper room deviation
+          default: 2
+          selector:
+            number:
+              min: 0.5
+              max: 5
+              step: 0.5
+              unit_of_measurement: °C
+        house_temp_deviation_max_down:
+          name: Maximum lower room deviation correction
+          default: 2
+          selector:
+            number:
+              min: 0.5
+              max: 5
+              step: 0.5
+              unit_of_measurement: °C
+        heating_curve_outside_cold:
+          name: Heating curve cold outside point
+          default: -13
+          selector:
+            number:
+              min: -30
+              max: 0
+              step: 1
+              unit_of_measurement: °C
+        heating_curve_outside_mild:
+          name: Heating curve mild outside point
+          default: 5
+          selector:
+            number:
+              min: -5
+              max: 15
+              step: 1
+              unit_of_measurement: °C
+        heating_curve_outside_warm:
+          name: Heating curve warm outside point
+          default: 10
+          selector:
+            number:
+              min: 5
+              max: 25
+              step: 1
+              unit_of_measurement: °C
+        heating_curve_water_cold:
+          name: Heating curve water temperature at cold point
+          default: 45
+          selector:
+            number:
+              min: 25
+              max: 60
+              step: 1
+              unit_of_measurement: °C
+        heating_curve_water_mild:
+          name: Heating curve water temperature at mild point
+          default: 35
+          selector:
+            number:
+              min: 20
+              max: 55
+              step: 1
+              unit_of_measurement: °C
+        heating_curve_water_warm:
+          name: Heating curve water temperature at warm point
+          default: 25
+          selector:
+            number:
+              min: 15
+              max: 45
+              step: 1
+              unit_of_measurement: °C
+        heating_curve_fancoil_factor:
+          name: Heating curve fancoil correction factor
+          default: 0.5
+          selector:
+            number:
+              min: 0
+              max: 1
+              step: 0.05
+        dhw_temp_sp_input:
+          name: DHW normal setpoint
+          default: 50
+          selector:
+            number:
+              min: 35
+              max: 60
+              step: 1
+              unit_of_measurement: °C
+        dhw_temp_dt_input:
+          name: DHW delta T
+          default: 4
+          selector:
+            number:
+              min: 1
+              max: 10
+              step: 0.5
+              unit_of_measurement: °C
+        dhw_idle_target_temp:
+          name: Heat-pump DHW idle target
+          description: Target written after a forced DHW run has ended.
+          default: 40
+          selector:
+            number:
+              min: 35
+              max: 55
+              step: 1
+              unit_of_measurement: °C
+        dhw_active_heat_delta:
+          name: Heat-pump active DHW heat delta
+          default: -2
+          selector:
+            number:
+              min: -15
+              max: 15
+              step: 1
+              unit_of_measurement: °C
+        dhw_idle_heat_delta:
+          name: Heat-pump idle DHW heat delta
+          default: -4
+          selector:
+            number:
+              min: -15
+              max: 15
+              step: 1
+              unit_of_measurement: °C
+        dhw_legionella_temp_input:
+          name: DHW legionella target
+          default: 60
+          selector:
+            number:
+              min: 55
+              max: 70
+              step: 1
+              unit_of_measurement: °C
+        dhw_legionella_weekday:
+          name: Legionella weekday
+          description: Monday is 0 and Sunday is 6.
+          default: 6
+          selector:
+            number:
+              min: 0
+              max: 6
+              step: 1
+        dhw_legionella_hp_start_time:
+          name: Legionella heat-pump start time
+          default: "13:00:00"
+          selector:
+            time:
+        dhw_legionella_electric_start_time:
+          name: Legionella electric-assist start time
+          default: "13:30:00"
+          selector:
+            time:
+        dhw_legionella_end_time:
+          name: Legionella run end time
+          default: "14:30:00"
+          selector:
+            time:
+        dhw_high_temp_safety:
+          name: DHW emergency high-temperature limit
+          default: 75
+          selector:
+            number:
+              min: 65
+              max: 80
+              step: 0.5
+              unit_of_measurement: °C
+        dhw_sensor_stale_timeout_minutes:
+          name: DHW sensor stale-data timeout
+          description: Set to 0 to disable. Use only if the sensor updates regularly even while its value is unchanged.
+          default: 0
+          selector:
+            number:
+              min: 0
+              max: 120
+              step: 1
+              unit_of_measurement: min
+        local_outside_temp_offset:
+          name: Local outside-temperature correction
+          default: 2
+          selector:
+            number:
+              min: -10
+              max: 10
+              step: 0.5
+              unit_of_measurement: °C
+
+# Normal transitions finish within 30 seconds. Safety, enable and defrost events
+# restart a normal run immediately instead of waiting in a queue.
+mode: restart
+max_exceeded: warning
+
+trigger_variables:
+  trigger_hp_outlet_temp: !input hp_outlet_temp
+  trigger_hp_z1_climate: !input hp_z1_climate
+  trigger_hp_dhw_temp: !input hp_dhw_temp
+  trigger_bathroom_humidity: !input bathroom_humidity
+  trigger_water_pulse_meter: !input water_pulse_meter
+  trigger_shower_humidity_threshold: !input dhw_shower_humidity_threshold
+  trigger_shower_flow_min: !input dhw_shower_flow_min
+  trigger_shower_flow_max: !input dhw_shower_flow_max
+  trigger_dhw_high_temp_safety: !input dhw_high_temp_safety
+
+triggers:
+  - trigger: homeassistant
+    event: start
+    id: trigger_homeassistant_start
+  - trigger: time_pattern
+    id: trigger_slow
+    seconds: /30
+  - trigger: state
+    id: trigger_enable_flags
+    entity_id:
+      - !input enable_heating
+      - !input enable_cooling
+      - !input enable_dhw
+      - !input solar_control
+  - trigger: template
+    value_template: >-
+      {% set hum = states(trigger_bathroom_humidity) %}
+      {% set flow = states(trigger_water_pulse_meter) %}
+      {{ is_number(hum) and is_number(flow)
+         and hum | float >= trigger_shower_humidity_threshold | float
+         and flow | float >= trigger_shower_flow_min | float
+         and flow | float <= trigger_shower_flow_max | float }}
+    for:
+      seconds: !input dhw_shower_detection_seconds
+    id: trigger_shower
+  - trigger: state
+    entity_id: !input hp_defrost_switch
+    id: trigger_defrost
+  - trigger: state
+    entity_id: !input cool_floor_permit_switch
+    to: "off"
+    id: trigger_floor_cooling_lockout
+  - trigger: template
+    value_template: >-
+      {% set flow = states(trigger_water_pulse_meter) %}
+      {{ not is_number(flow) or flow | float < trigger_shower_flow_min | float }}
+    id: trigger_inline_flow_lost
+  - trigger: state
+    entity_id: !input hp_circulation_pump_binary
+    to: "off"
+    for:
+      seconds: !input hydraulic_emitters_stop_delay_seconds
+    id: trigger_circulation_pump_stopped
+  - trigger: template
+    value_template: >-
+      {% set outlet = states(trigger_hp_outlet_temp) %}
+      {% set z1_sp = state_attr(trigger_hp_z1_climate, 'temperature') %}
+      {{ is_number(outlet) and is_number(z1_sp)
+         and outlet | float >= z1_sp | float + 3.0 }}
+    id: trigger_high_water_temp
+  - trigger: template
+    value_template: >-
+      {% set dhw = states(trigger_hp_dhw_temp) %}
+      {{ is_number(dhw)
+         and dhw | float > trigger_dhw_high_temp_safety | float }}
+    id: trigger_dhw_high_temperature
+  - trigger: template
+    value_template: "{{ not is_number(states(trigger_hp_dhw_temp)) }}"
+    id: trigger_dhw_sensor_invalid
+  - trigger: time
+    at: !input dhw_legionella_hp_start_time
+    id: trigger_legionella_hp_start
+  - trigger: time
+    at: !input dhw_legionella_electric_start_time
+    id: trigger_legionella_electric_start
+  - trigger: time
+    at: !input dhw_legionella_end_time
+    id: trigger_legionella_end
+
+variables:
+  enable_heating: !input enable_heating
+  enable_cooling: !input enable_cooling
+  enable_dhw: !input enable_dhw
+  solar_control: !input solar_control
+  powercontrol_sp_increase: !input powercontrol_sp_increase
+
+  hp_power_switch: !input hp_power_switch
+  hp_force_dhw_switch: !input hp_force_dhw_switch
+  hp_defrost_switch: !input hp_defrost_switch
+  hp_compressor_binary: !input hp_compressor_binary
+  hp_circulation_pump_binary: !input hp_circulation_pump_binary
+  hp_compressor_freq: !input hp_compressor_freq
+  hp_operating_mode: !input hp_operating_mode
+  hp_quiet_mode: !input hp_quiet_mode
+  hp_z1_climate: !input hp_z1_climate
+  hp_z1_heat_request_temp: !input hp_z1_heat_request_temp
+  hp_z1_cool_request_temp: !input hp_z1_cool_request_temp
+  hp_fake_demandcontrol: !input hp_fake_demandcontrol
+  hp_dhw_target_temp: !input hp_dhw_target_temp
+  hp_dhw_heat_delta: !input hp_dhw_heat_delta
+  hp_dhw_temp: !input hp_dhw_temp
+  hp_outside_temp: !input hp_outside_temp
+  hp_outlet_temp: !input hp_outlet_temp
+  hp_threeway_valve: !input hp_threeway_valve
+  hp_s0_watt: !input hp_s0_watt
+
+  living_temp_primary: !input living_temp_primary
+  living_temp_backup: !input living_temp_backup
+  local_outside_temp: !input local_outside_temp
+  bathroom_humidity: !input bathroom_humidity
+  water_pulse_meter: !input water_pulse_meter
+
+  meter_mode: !input meter_mode
+  pap_power_production: !input pap_power_production
+  sap_power_production: !input sap_power_production
+  pap_power_consumption: !input pap_power_consumption
+  sap_power_consumption: !input sap_power_consumption
+  power_netto_pap: !input power_netto_pap
+  power_netto_sap: !input power_netto_sap
+  ev_mode_select: !input ev_mode_select
+  ev_charge_current: !input ev_charge_current
+  ev_state: !input ev_state
+
+  fancoil_livingroom: !input fancoil_livingroom
+  floor_heating: !input floor_heating
+  fancoil_upstairs: !input fancoil_upstairs
+  cool_floor_permit_switch: !input cool_floor_permit_switch
+  inline_heater: !input inline_heater
+  boiler_heater: !input boiler_heater
+  boiler_dimmer: !input boiler_dimmer
+  boiler_power: !input boiler_power
+
+  house_temp_SP: !input house_temp_sp_input
+  cooling_start_house_temp: !input cooling_start_house_temp
+  cooling_stop_house_temp: !input cooling_stop_house_temp
+  quiet_day_start_time: !input quiet_day_start_time
+  active_day_start_time: !input active_day_start_time
+  active_day_end_time: !input active_day_end_time
+  cooling_forced_stop_time: !input cooling_forced_stop_time
+  hydraulic_emitters_stop_delay_seconds: !input hydraulic_emitters_stop_delay_seconds
+  cooling_transition_retry_delay_seconds: !input cooling_transition_retry_delay_seconds
+  cooling_water_temp_SP: !input cooling_water_temp_sp
+  cool_floor_min_off_seconds: !input cool_floor_min_off_seconds
+  dhw_electric_assist_while_cooling: !input dhw_electric_assist_while_cooling
+  dhw_shower_humidity_threshold: !input dhw_shower_humidity_threshold
+  dhw_shower_detection_seconds: !input dhw_shower_detection_seconds
+  dhw_shower_flow_min: !input dhw_shower_flow_min
+  dhw_shower_flow_max: !input dhw_shower_flow_max
+  dhw_cooling_electric_start_offset: !input dhw_cooling_electric_start_offset
+  dhw_cooling_electric_stop_offset: !input dhw_cooling_electric_stop_offset
+  dhw_cooling_electric_dimmer_percentage: !input dhw_cooling_electric_dimmer_percentage
+  allow_simultaneous_dhw_heaters: !input allow_simultaneous_dhw_heaters
+  inline_heater_requires_flow: !input inline_heater_requires_flow
+  dhw_temp_inline_heater: !input inline_heater_tank_temp_threshold
+  inline_heater_cold_outside_threshold: !input inline_heater_cold_outside_threshold
+  heating_outside_stop_temp: !input heating_outside_stop_temp
+  house_temp_deviation_factor: !input house_temp_deviation_factor
+  house_temp_deviation_max_up: !input house_temp_deviation_max_up
+  house_temp_deviation_max_down: !input house_temp_deviation_max_down
+  war_outside_temp_1: !input heating_curve_outside_cold
+  war_outside_temp_2: !input heating_curve_outside_mild
+  war_outside_temp_3: !input heating_curve_outside_warm
+  war_water_temp_1: !input heating_curve_water_cold
+  war_water_temp_2: !input heating_curve_water_mild
+  war_water_temp_3: !input heating_curve_water_warm
+  fancoil_factor: !input heating_curve_fancoil_factor
+  dhw_temp_SP: !input dhw_temp_sp_input
+  dhw_temp_dT: !input dhw_temp_dt_input
+  dhw_idle_target_temp: !input dhw_idle_target_temp
+  dhw_active_heat_delta: !input dhw_active_heat_delta
+  dhw_idle_heat_delta: !input dhw_idle_heat_delta
+  dhw_temp_legionella: !input dhw_legionella_temp_input
+  dhw_legionella_weekday: !input dhw_legionella_weekday
+  dhw_legionella_hp_start_time: !input dhw_legionella_hp_start_time
+  dhw_legionella_electric_start_time: !input dhw_legionella_electric_start_time
+  dhw_legionella_end_time: !input dhw_legionella_end_time
+  dhw_high_temp_safety: !input dhw_high_temp_safety
+  dhw_sensor_stale_timeout_minutes: !input dhw_sensor_stale_timeout_minutes
+  local_outside_temp_offset: !input local_outside_temp_offset
+
+  softstart_catch_duration: 180
+  longrun_duration: 3600
+  longrun_upperlimit_correction: 8
+  dhw_temp_SP_overshoot_correction: 1
+
+  trigger_id: "{{ trigger.id if trigger is defined else 'manual' }}"
+  configuration_valid: >-
+    {{ cooling_stop_house_temp | float < cooling_start_house_temp | float
+       and dhw_cooling_electric_stop_offset | float < dhw_cooling_electric_start_offset | float
+       and dhw_shower_flow_min | float < dhw_shower_flow_max | float
+       and dhw_temp_legionella | float < dhw_high_temp_safety | float
+       and quiet_day_start_time < active_day_start_time
+       and active_day_start_time < active_day_end_time
+       and active_day_end_time < cooling_forced_stop_time
+       and war_outside_temp_1 | float < war_outside_temp_2 | float
+       and war_outside_temp_2 | float < war_outside_temp_3 | float
+       and war_water_temp_1 | float >= war_water_temp_2 | float
+       and war_water_temp_2 | float >= war_water_temp_3 | float
+       and dhw_legionella_hp_start_time < dhw_legionella_electric_start_time
+       and dhw_legionella_electric_start_time < dhw_legionella_end_time }}
+  dhw_sensor_valid: >-
+    {% set raw = states(hp_dhw_temp) %}
+    {% set timeout = dhw_sensor_stale_timeout_minutes | float(0) %}
+    {% if not is_number(raw) %}
+      false
+    {% elif timeout <= 0 %}
+      true
+    {% else %}
+      {% set age = as_timestamp(now()) - as_timestamp(states[hp_dhw_temp].last_updated, 0) %}
+      {{ age <= timeout * 60 }}
+    {% endif %}
+  dhw_temp_PV: "{{ states(hp_dhw_temp) | float(0) }}"
+  dhw_shower_likely: >-
+    {% set hum = states(bathroom_humidity) %}
+    {% set flow = states(water_pulse_meter) %}
+    {{ is_number(hum) and is_number(flow)
+       and hum | float >= dhw_shower_humidity_threshold | float
+       and flow | float >= dhw_shower_flow_min | float
+       and flow | float <= dhw_shower_flow_max | float }}
+  house_temp_valid: >-
+    {{ is_number(states(living_temp_primary))
+       or is_number(states(living_temp_backup)) }}
+  house_temp_PV: >-
+    {% if is_number(states(living_temp_primary)) %}
+      {{ states(living_temp_primary) | float }}
+    {% else %}
+      {{ states(living_temp_backup) | float(20) }}
+    {% endif %}
+  outside_temp_valid: >-
+    {{ is_number(states(local_outside_temp))
+       or is_number(states(hp_outside_temp)) }}
+  outside_temp_PV: >-
+    {% if is_number(states(local_outside_temp)) %}
+      {{ states(local_outside_temp) | float + local_outside_temp_offset | float }}
+    {% else %}
+      {{ states(hp_outside_temp) | float(5) }}
+    {% endif %}
+  heating_room_demand: >-
+    {{ house_temp_valid | bool(false)
+       and outside_temp_valid | bool(false)
+       and states(enable_heating) == 'on'
+       and house_temp_PV | float < house_temp_SP | float + 1
+       and outside_temp_PV | float < heating_outside_stop_temp | float - 0.5 }}
+  heating_stop_required: >-
+    {{ states(enable_heating) == 'off'
+       or (house_temp_valid | bool(false)
+           and house_temp_PV | float >= house_temp_SP | float + house_temp_deviation_max_up | float)
+       or (house_temp_valid | bool(false)
+           and outside_temp_valid | bool(false)
+           and outside_temp_PV | float >= heating_outside_stop_temp | float
+           and house_temp_PV | float >= house_temp_SP | float) }}
+  cooling_room_demand: >-
+    {{ house_temp_valid | bool(false)
+       and outside_temp_valid | bool(false)
+       and states(enable_cooling) == 'on'
+       and house_temp_PV | float > [cooling_start_house_temp | float, house_temp_SP | float + 1] | max
+       and (outside_temp_PV | float(5) > 25.5 or house_temp_PV | float(20) > 24)
+       and now().strftime('%H:%M:%S') >= active_day_start_time
+       and now().strftime('%H:%M:%S') < active_day_end_time }}
+  cooling_stop_required: >-
+    {{ states(enable_cooling) == 'off'
+       or (house_temp_valid | bool(false)
+           and house_temp_PV | float <= cooling_stop_house_temp | float)
+       or now().strftime('%H:%M:%S') >= cooling_forced_stop_time
+       or now().strftime('%H:%M:%S') < active_day_start_time }}
+  legionella_window: >-
+    {{ now().weekday() == dhw_legionella_weekday | int
+       and now().strftime('%H:%M:%S') >= dhw_legionella_hp_start_time
+       and now().strftime('%H:%M:%S') <= dhw_legionella_end_time }}
+  legionella_electric_window: >-
+    {{ now().weekday() == dhw_legionella_weekday | int
+       and now().strftime('%H:%M:%S') >= dhw_legionella_electric_start_time
+       and now().strftime('%H:%M:%S') <= dhw_legionella_end_time }}
+  legionella_due: >-
+    {{ legionella_window | bool(false)
+       and dhw_sensor_valid | bool(false)
+       and dhw_temp_PV | float < dhw_temp_legionella | float }}
+  dhw_normal_need: >-
+    {{ dhw_sensor_valid | bool(false)
+       and dhw_temp_PV | float < dhw_temp_SP | float - dhw_temp_dT | float }}
+  hydraulic_stop_ready: >-
+    {{ states(hp_circulation_pump_binary) == 'off'
+       and (as_timestamp(now()) - as_timestamp(states[hp_circulation_pump_binary].last_changed, 0))
+           >= hydraulic_emitters_stop_delay_seconds | float }}
+  floor_pump_restart_ready: >-
+    {{ states(floor_heating) == 'on'
+       or (states(floor_heating) == 'off'
+           and (as_timestamp(now()) - as_timestamp(states[floor_heating].last_changed, 0))
+               >= cool_floor_min_off_seconds | float) }}
+  boiler_dimmer_valid: "{{ is_number(state_attr(boiler_dimmer, 'percentage')) }}"
+  runtime_compressor: >-
+    {% if states(hp_compressor_binary) == 'on' %}
+      {{ as_timestamp(now()) - as_timestamp(states[hp_compressor_binary].last_changed) }}
+    {% else %}0{% endif %}
+  runtime_tank: >-
+    {% if states(hp_threeway_valve) == 'Tank' %}
+      {{ as_timestamp(now()) - as_timestamp(states[hp_threeway_valve].last_changed) }}
+    {% else %}0{% endif %}
+  water_demandcontrol_SP: >-
+    {% if runtime_compressor | float(0) > softstart_catch_duration | float(0) + 120 %}100{% else %}5{% endif %}
+  water_temp_PV: "{{ states(hp_outlet_temp) | float(30) }}"
+  fancoil_status: "{{ 'on' if outside_temp_PV | float(5) <= 10 else 'off' }}"
+  water_temp_war_non_corrected: >-
+    {% set ot = outside_temp_PV | float(5) %}
+    {% if ot >= war_outside_temp_3 | float %}
+      {{ war_water_temp_3 | float }}
+    {% elif ot >= war_outside_temp_2 | float %}
+      {{ war_water_temp_2 | float - ((ot - war_outside_temp_2 | float) / ((war_outside_temp_3 | float) - (war_outside_temp_2 | float)) * ((war_water_temp_2 | float) - (war_water_temp_3 | float))) }}
+    {% elif ot >= war_outside_temp_1 | float %}
+      {{ war_water_temp_1 | float - ((ot - war_outside_temp_1 | float) / ((war_outside_temp_2 | float) - (war_outside_temp_1 | float)) * ((war_water_temp_1 | float) - (war_water_temp_2 | float))) }}
+    {% else %}
+      {{ war_water_temp_1 | float }}
+    {% endif %}
+  water_temp_war: >-
+    {% if fancoil_status == 'on' %}
+      {{ ((water_temp_war_non_corrected | float - house_temp_SP | float) * fancoil_factor | float + house_temp_SP | float) }}
+    {% else %}
+      {{ water_temp_war_non_corrected | float }}
+    {% endif %}
+  water_temp_rtc: >-
+    {% set diff = house_temp_PV | float(20) - house_temp_SP | float(20) %}
+    {% if diff > house_temp_deviation_max_up | float %}
+      {{ -(diff - house_temp_deviation_max_up | float) * 2 * house_temp_deviation_factor | float - (house_temp_deviation_max_up | float * house_temp_deviation_factor | float) }}
+    {% elif -diff > house_temp_deviation_max_down | float %}
+      {{ house_temp_deviation_max_down | float * house_temp_deviation_factor | float }}
+    {% else %}
+      {{ -diff * house_temp_deviation_factor | float }}
+    {% endif %}
+  water_temp_powercontrol: >-
+    {% if states(solar_control) == 'on' %}
+      {{ states(powercontrol_sp_increase) | float(0) }}
+    {% else %}0{% endif %}
+  water_temp_longrun_delta: 1.25
+  water_temp_longrun: >-
+    {% set base = water_temp_war | float + water_temp_rtc | float + water_temp_powercontrol | float %}
+    {% set rt = runtime_compressor | float(0) %}
+    {% if (rt > 0 and (house_temp_SP | float - house_temp_PV | float) > -1 and (fancoil_status == 'on' or rt < longrun_duration | float)) or water_temp_powercontrol | float > 0 %}
+      {% if (water_temp_PV | float - water_temp_longrun_delta | float) > base %}
+        {{ [longrun_upperlimit_correction | float, water_temp_PV | float - base - water_temp_longrun_delta | float] | min }}
+      {% else %}0{% endif %}
+    {% else %}0{% endif %}
+  water_temp_new_SP: >-
+    {% set rt = runtime_compressor | float(0) %}
+    {% set freq = states(hp_compressor_freq) | float(0) %}
+    {% set base = water_temp_war | float + water_temp_rtc | float + water_temp_longrun | float + water_temp_powercontrol | float %}
+    {% if rt > 1 and rt < 180 and freq > 1 %}
+      {{ (((water_temp_PV | float - 2) * (softstart_catch_duration | float - rt) + base * rt) / softstart_catch_duration | float) | round(0) }}
+    {% else %}
+      {{ base | round(0) }}
+    {% endif %}
+  dhw_temp_SP_increase: >-
+    {{ 3 if dhw_shower_likely | bool(false) else 0 }}
+  dhw_demandcontrol_SP: >-
+    {% set outlet = states(hp_outlet_temp) | float(50) %}
+    {% set dhw = states(hp_dhw_temp) | float(50) %}
+    {% set flow = states(water_pulse_meter) | float(0) %}
+    {% if outlet > 55 %}
+      {{ 100 - (outlet - 55) * 15 }}
+    {% elif flow >= dhw_shower_flow_min | float and flow <= dhw_shower_flow_max | float %}
+      {{ 100 - 40 / (dhw_temp_dT | float(4)) * (dhw - dhw_temp_SP | float(50) + dhw_temp_dT | float(4)) }}
+    {% elif dhw > 52 %}
+      60
+    {% else %}
+      40
+    {% endif %}
+
+actions:
+  - alias: Configuration and DHW safety gate
+    choose:
+      - alias: Emergency stop - DHW temperature too high
+        conditions:
+          - condition: template
+            value_template: >-
+              {{ dhw_sensor_valid | bool(false)
+                 and dhw_temp_PV | float > dhw_high_temp_safety | float }}
+        sequence:
+          - action: fan.set_percentage
+            target:
+              entity_id: !input boiler_dimmer
+            data:
+              percentage: 1
+            continue_on_error: true
+          - action: switch.turn_off
+            target:
+              entity_id: !input boiler_heater
+            continue_on_error: true
+          - action: switch.turn_off
+            target:
+              entity_id: !input inline_heater
+            continue_on_error: true
+          - action: switch.turn_off
+            target:
+              entity_id: !input hp_force_dhw_switch
+            continue_on_error: true
+          - action: switch.turn_off
+            target:
+              entity_id: !input hp_power_switch
+            continue_on_error: true
+          - action: persistent_notification.create
+            data:
+              notification_id: heishamon_dhw_high_temperature
+              title: Heishamon DHW emergency stop
+              message: >-
+                DHW reached {{ dhw_temp_PV }} °C, above the configured
+                {{ dhw_high_temp_safety }} °C limit. All DHW heat sources and
+                the heat pump were switched off; DHW control was disabled.
+            continue_on_error: true
+          - action: input_boolean.turn_off
+            target:
+              entity_id: !input enable_dhw
+            continue_on_error: true
+          - stop: DHW emergency high-temperature stop
+      - alias: Fail safe - DHW sensor invalid or stale
+        conditions:
+          - condition: template
+            value_template: "{{ not dhw_sensor_valid | bool(false) }}"
+        sequence:
+          - action: fan.set_percentage
+            target:
+              entity_id: !input boiler_dimmer
+            data:
+              percentage: 1
+            continue_on_error: true
+          - action: switch.turn_off
+            target:
+              entity_id: !input boiler_heater
+            continue_on_error: true
+          - action: switch.turn_off
+            target:
+              entity_id: !input inline_heater
+            continue_on_error: true
+          - action: switch.turn_off
+            target:
+              entity_id: !input hp_force_dhw_switch
+            continue_on_error: true
+          - action: persistent_notification.create
+            data:
+              notification_id: heishamon_dhw_sensor_invalid
+              title: Heishamon DHW sensor unavailable
+              message: >-
+                The DHW temperature is invalid or stale. Electric DHW heat
+                sources and Force DHW were switched off.
+            continue_on_error: true
+          - stop: DHW sensor fail-safe stop
+      - alias: Invalid blueprint settings
+        conditions:
+          - condition: template
+            value_template: "{{ not configuration_valid | bool(false) }}"
+        sequence:
+          - action: fan.set_percentage
+            target:
+              entity_id: !input boiler_dimmer
+            data:
+              percentage: 1
+            continue_on_error: true
+          - action: switch.turn_off
+            target:
+              entity_id: !input boiler_heater
+            continue_on_error: true
+          - action: switch.turn_off
+            target:
+              entity_id: !input inline_heater
+            continue_on_error: true
+          - action: switch.turn_off
+            target:
+              entity_id: !input hp_force_dhw_switch
+            continue_on_error: true
+          - action: switch.turn_off
+            target:
+              entity_id: !input hp_power_switch
+            continue_on_error: true
+          - action: persistent_notification.create
+            data:
+              notification_id: heishamon_invalid_blueprint_settings
+              title: Heishamon v4 configuration error
+              message: >-
+                Check cooling start/stop temperatures, electric-assist offsets,
+                shower flow limits, heating-curve point order,
+                legionella/safety temperatures and the ordering of the
+                operating and legionella times.
+            continue_on_error: true
+          - stop: Invalid Heishamon v4 settings
+
+  - alias: Immediate cleanup when DHW control is disabled
+    if:
+      - condition: template
+        value_template: "{{ states(enable_dhw) == 'off' }}"
+    then:
+      - action: fan.set_percentage
+        target:
+          entity_id: !input boiler_dimmer
+        data:
+          percentage: 1
+        continue_on_error: true
+      - action: switch.turn_off
+        target:
+          entity_id: !input boiler_heater
+        continue_on_error: true
+      - action: switch.turn_off
+        target:
+          entity_id: !input inline_heater
+        continue_on_error: true
+      - action: switch.turn_off
+        target:
+          entity_id: !input hp_force_dhw_switch
+        continue_on_error: true
+
+  - alias: Report an incomplete legionella run
+    if:
+      - condition: template
+        value_template: >-
+          {{ trigger_id == 'trigger_legionella_end'
+             and now().weekday() == dhw_legionella_weekday | int
+             and dhw_temp_PV | float < dhw_temp_legionella | float }}
+    then:
+      - action: persistent_notification.create
+        data:
+          notification_id: heishamon_legionella_target_not_reached
+          title: Heishamon legionella target not reached
+          message: >-
+            The run ended at {{ dhw_temp_PV }} °C; configured target:
+            {{ dhw_temp_legionella }} °C. Check heater capacity, sensors and
+            run duration.
+
+  - alias: Preflight electric-heater interlocks
+    if:
+      - condition: template
+        value_template: >-
+          {% set flow = states(water_pulse_meter) %}
+          {% set flow_ok = not inline_heater_requires_flow | bool(true)
+               or (is_number(flow) and flow | float >= dhw_shower_flow_min | float) %}
+          {% set inline_demand = states(enable_dhw) == 'on'
+               and dhw_sensor_valid | bool(false)
+               and flow_ok
+               and (dhw_temp_PV | float <= dhw_temp_inline_heater | float
+                    or (is_number(states(hp_outside_temp))
+                        and states(hp_outside_temp) | float <= inline_heater_cold_outside_threshold | float
+                        and dhw_temp_PV | float < dhw_temp_SP | float)) %}
+          {{ not inline_demand }}
+    then:
+      - action: switch.turn_off
+        target:
+          entity_id: !input inline_heater
+        continue_on_error: true
+
+  - alias: Preflight boiler-heater interlock
+    if:
+      - condition: template
+        value_template: >-
+          {% set mode = states(meter_mode) %}
+          {% set netto_raw = states(power_netto_pap) if mode == 'PAP' else states(power_netto_sap) if mode == 'SAP' else 'unknown' %}
+          {% set netto = netto_raw | float(0) %}
+          {% set ev_has_priority = states(ev_mode_select) == 'Solar'
+               and states(ev_charge_current) | float(0) < 22.9
+               and states(ev_state) in ['Charging', 'Charging Stopped'] %}
+          {% set heater_allowed = allow_simultaneous_dhw_heaters | bool(false)
+               or states(inline_heater) != 'on' %}
+          {% set legionella_heat = legionella_electric_window | bool(false)
+               and dhw_temp_PV | float < dhw_temp_legionella | float %}
+          {% set cooling_heat = dhw_electric_assist_while_cooling | bool(true)
+               and states(hp_operating_mode) == 'Cool only'
+               and not dhw_shower_likely | bool(false)
+               and dhw_temp_PV | float < dhw_temp_SP | float - dhw_cooling_electric_stop_offset | float
+               and (dhw_temp_PV | float <= dhw_temp_SP | float - dhw_cooling_electric_start_offset | float
+                    or states(boiler_heater) == 'on') %}
+          {% set solar_heat = states(solar_control) == 'on'
+               and is_number(netto_raw)
+               and dhw_temp_PV | float < dhw_high_temp_safety | float - 1
+               and not ev_has_priority
+               and (netto <= -0.15 or (states(boiler_heater) == 'on' and netto < 0.10)) %}
+          {% set ambient_heat = is_number(states(hp_outside_temp))
+               and states(hp_outside_temp) | float < 0.1
+               and dhw_temp_PV | float < (dhw_temp_SP | float - dhw_temp_dT | float) + 3
+               and (dhw_temp_PV | float <= (dhw_temp_SP | float - dhw_temp_dT | float) + 1
+                    or states(boiler_heater) == 'on')
+               and states(hp_threeway_valve) == 'Room' %}
+          {{ states(enable_dhw) != 'on'
+             or not boiler_dimmer_valid | bool(false)
+             or not heater_allowed
+             or not (legionella_heat or cooling_heat or solar_heat or ambient_heat) }}
+    then:
+      - action: fan.set_percentage
+        target:
+          entity_id: !input boiler_dimmer
+        data:
+          percentage: 1
+        continue_on_error: true
+      - action: switch.turn_off
+        target:
+          entity_id: !input boiler_heater
+        continue_on_error: true
+
+  - alias: Safety stop when all modes disabled
+    if:
+      - condition: template
+        value_template: >-
+          {{ states(enable_heating) == 'off'
+             and states(enable_cooling) == 'off'
+             and states(enable_dhw) == 'off'
+             and states(hp_force_dhw_switch) == 'off'
+             and states(hp_compressor_binary) == 'off'
+             and trigger_id in ['trigger_slow', 'trigger_enable_flags', 'manual'] }}
+      - condition: template
+        value_template: >-
+          {{ (as_timestamp(now()) - as_timestamp(states[hp_force_dhw_switch].last_changed)) > 300
+             and (as_timestamp(now()) - as_timestamp(states[hp_compressor_binary].last_changed)) > 300 }}
+    then:
+      - action: switch.turn_off
+        target:
+          entity_id: !input hp_power_switch
+
+  - alias: Quiet mode compressor
+    choose:
+      - alias: Quiet mode 3 during startup/off
+        conditions:
+          - condition: template
+            value_template: "{{ runtime_compressor | float(0) <= 500 or states(hp_compressor_freq) | float(0) < 1 }}"
+        sequence:
+          - condition: template
+            value_template: "{{ states(hp_quiet_mode) != '3' }}"
+          - action: select.select_option
+            data:
+              option: "3"
+            target:
+              entity_id: !input hp_quiet_mode
+      - alias: Quiet off during daytime
+        conditions:
+          - condition: template
+            value_template: >-
+              {{ now().strftime('%H:%M:%S') >= quiet_day_start_time
+                 and now().strftime('%H:%M:%S') < active_day_end_time }}
+        sequence:
+          - condition: template
+            value_template: "{{ states(hp_quiet_mode) != 'Off' }}"
+          - action: select.select_option
+            data:
+              option: "Off"
+            target:
+              entity_id: !input hp_quiet_mode
+      - alias: Quiet mode 1 if DHW or undercooled
+        conditions:
+          - condition: template
+            value_template: >-
+              {{ states(hp_operating_mode) == 'DHW only'
+                 or house_temp_PV | float(20) < (house_temp_SP | float(20) - house_temp_deviation_max_down | float(2)) }}
+        sequence:
+          - condition: template
+            value_template: "{{ states(hp_quiet_mode) != '1' }}"
+          - action: select.select_option
+            data:
+              option: "1"
+            target:
+              entity_id: !input hp_quiet_mode
+      - alias: Quiet mode 1 default
+        conditions: []
+        sequence:
+          - condition: template
+            value_template: "{{ states(hp_quiet_mode) != '1' }}"
+          - action: select.select_option
+            data:
+              option: "1"
+            target:
+              entity_id: !input hp_quiet_mode
+
+  - alias: DHW compressor start/stop
+    choose:
+      - alias: DHW compressor start
+        conditions:
+          - condition: template
+            value_template: >-
+              {% set shower = trigger_id == 'trigger_shower' %}
+              {% set normal_allowed = dhw_normal_need | bool(false)
+                   and (states(hp_operating_mode) != 'Cool only'
+                        or not dhw_electric_assist_while_cooling | bool(true)) %}
+              {{ states(enable_dhw) == 'on'
+                 and is_number(states(hp_outside_temp))
+                 and states(hp_outside_temp) | float > -5
+                 and (shower or legionella_due | bool(false) or normal_allowed)
+                 and not (states(hp_operating_mode) == 'DHW only'
+                          and states(hp_force_dhw_switch) == 'on'
+                          and states(hp_power_switch) == 'on') }}
+        sequence:
+          - action: switch.turn_on
+            target:
+              entity_id: !input hp_power_switch
+          - delay: "00:00:10"
+          - action: select.select_option
+            data:
+              option: DHW only
+            target:
+              entity_id: !input hp_operating_mode
+          - action: number.set_value
+            data:
+              value: >-
+                {% set requested = dhw_temp_legionella | float
+                     if legionella_due | bool(false)
+                     else dhw_temp_SP | float + dhw_temp_SP_increase | float %}
+                {% set entity_min = state_attr(hp_dhw_target_temp, 'min') | float(35) %}
+                {% set entity_max = state_attr(hp_dhw_target_temp, 'max') | float(65) %}
+                {{ [entity_max, [entity_min, requested] | max] | min }}
+            target:
+              entity_id: !input hp_dhw_target_temp
+          - action: number.set_value
+            data:
+              value: "{{ dhw_active_heat_delta | float(-2) }}"
+            target:
+              entity_id: !input hp_dhw_heat_delta
+          - action: switch.turn_on
+            target:
+              entity_id: !input hp_force_dhw_switch
+      - alias: DHW compressor stop
+        conditions:
+          - condition: template
+            value_template: >-
+              {% set normal_reached = (runtime_tank | float(0) > 600 and (dhw_temp_PV | float + dhw_temp_SP_overshoot_correction | float) >= (dhw_temp_SP | float + dhw_temp_SP_increase | float)) or (runtime_tank | float(0) <= 600 and dhw_temp_PV | float >= (dhw_temp_SP | float + dhw_temp_SP_increase | float)) %}
+              {{ states(hp_operating_mode) == 'DHW only'
+                 and (states(enable_dhw) == 'off'
+                      or (states(hp_defrost_switch) == 'off'
+                          and ((legionella_window | bool(false)
+                                and dhw_temp_PV | float >= dhw_temp_legionella | float)
+                               or (not legionella_window | bool(false)
+                                   and normal_reached)))) }}
+        sequence:
+          - action: switch.turn_off
+            target:
+              entity_id: !input hp_force_dhw_switch
+            continue_on_error: true
+          - action: number.set_value
+            data:
+              value: "{{ dhw_idle_target_temp | float(40) }}"
+            target:
+              entity_id: !input hp_dhw_target_temp
+          - action: number.set_value
+            data:
+              value: "{{ dhw_idle_heat_delta | float(-4) }}"
+            target:
+              entity_id: !input hp_dhw_heat_delta
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ cooling_room_demand | bool(false) }}"
+                sequence:
+                  - action: switch.turn_on
+                    target:
+                      entity_id: !input hp_power_switch
+                  - action: select.select_option
+                    data:
+                      option: Cool only
+                    target:
+                      entity_id: !input hp_operating_mode
+                  - delay:
+                      seconds: !input cooling_transition_retry_delay_seconds
+                  - action: select.select_option
+                    data:
+                      option: Cool only
+                    target:
+                      entity_id: !input hp_operating_mode
+                  - action: climate.set_hvac_mode
+                    data:
+                      hvac_mode: cool
+                    target:
+                      entity_id: !input hp_z1_climate
+                  - action: number.set_value
+                    data:
+                      value: "{{ cooling_water_temp_SP | float(10) }}"
+                    target:
+                      entity_id: !input hp_z1_cool_request_temp
+              - conditions:
+                  - condition: template
+                    value_template: "{{ heating_room_demand | bool(false) }}"
+                sequence:
+                  - action: switch.turn_on
+                    target:
+                      entity_id: !input hp_power_switch
+                  - action: select.select_option
+                    data:
+                      option: Heat only
+                    target:
+                      entity_id: !input hp_operating_mode
+                  - action: climate.set_hvac_mode
+                    data:
+                      hvac_mode: heat
+                    target:
+                      entity_id: !input hp_z1_climate
+            default:
+              - action: switch.turn_off
+                target:
+                  entity_id: !input hp_power_switch
+
+  - alias: Heat start/stop
+    choose:
+      - alias: Heat compressor start
+        conditions:
+          - condition: template
+            value_template: >-
+              {{ heating_room_demand | bool(false)
+                 and states(hp_operating_mode) != 'DHW only'
+                 and states(hp_force_dhw_switch) == 'off'
+                 and not (states(hp_operating_mode) == 'Heat only'
+                          and states(hp_power_switch) == 'on'
+                          and states(hp_z1_climate) == 'heat') }}
+        sequence:
+          - if:
+              - condition: template
+                value_template: "{{ states(hp_power_switch) == 'off' }}"
+            then:
+              - action: switch.turn_on
+                target:
+                  entity_id: !input hp_power_switch
+              - delay: "00:00:15"
+          - action: select.select_option
+            data:
+              option: Heat only
+            target:
+              entity_id: !input hp_operating_mode
+          - action: climate.set_hvac_mode
+            data:
+              hvac_mode: heat
+            target:
+              entity_id: !input hp_z1_climate
+      - alias: Heat compressor stop
+        conditions:
+          - condition: template
+            value_template: >-
+              {{ states(hp_operating_mode) == 'Heat only'
+                 and heating_stop_required | bool(false) }}
+        sequence:
+          - action: switch.turn_off
+            target:
+              entity_id: !input hp_power_switch
+          # Emitters remain open until circulation has stopped for the configured delay.
+
+  - alias: Cool start/stop
+    choose:
+      - alias: Cool compressor start
+        conditions:
+          - condition: template
+            value_template: >-
+              {{ cooling_room_demand | bool(false)
+                 and states(hp_force_dhw_switch) == 'off'
+                 and not (states(hp_operating_mode) == 'Cool only'
+                          and states(hp_power_switch) == 'on'
+                          and states(hp_z1_climate) == 'cool') }}
+        sequence:
+          - action: number.set_value
+            data:
+              value: "{{ cooling_water_temp_SP | float(10) }}"
+            target:
+              entity_id: !input hp_z1_cool_request_temp
+          - action: switch.turn_on
+            target:
+              entity_id: !input hp_power_switch
+          - delay: "00:00:05"
+          - action: select.select_option
+            data:
+              option: Cool only
+            target:
+              entity_id: !input hp_operating_mode
+          - delay:
+              seconds: !input cooling_transition_retry_delay_seconds
+          - action: select.select_option
+            data:
+              option: Cool only
+            target:
+              entity_id: !input hp_operating_mode
+          - action: climate.set_hvac_mode
+            data:
+              hvac_mode: cool
+            target:
+              entity_id: !input hp_z1_climate
+          - action: switch.turn_on
+            target:
+              entity_id:
+                - !input fancoil_upstairs
+                - !input fancoil_livingroom
+      - alias: Cool compressor stop
+        conditions:
+          - condition: template
+            value_template: >-
+              {{ states(hp_operating_mode) == 'Cool only'
+                 and cooling_stop_required | bool(false) }}
+        sequence:
+          # Keep fancoil/zone valves open until the circulation pump has stopped;
+          # closing them while the pump is still running can cause water hammer or
+          # the bypass valve to snap open. The delayed stop branch below handles
+          # the emitter shutdown.
+          - action: select.select_option
+            data:
+              option: DHW only
+            target:
+              entity_id: !input hp_operating_mode
+          - action: switch.turn_off
+            target:
+              entity_id: !input hp_power_switch
+
+  - alias: Climate devices and demand control
+    choose:
+      - alias: Defrost - stop fancoils
+        conditions:
+          - condition: template
+            value_template: "{{ states(hp_defrost_switch) == 'on' }}"
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ hydraulic_stop_ready | bool(false) }}"
+                sequence:
+                  - action: switch.turn_off
+                    target:
+                      entity_id:
+                        - !input fancoil_livingroom
+                        - !input floor_heating
+                        - !input fancoil_upstairs
+      - alias: Hydraulic emitters off after circulation pump stopped
+        conditions:
+          - condition: template
+            value_template: >-
+              {{ hydraulic_stop_ready | bool(false)
+                 and (states(hp_power_switch) == 'off'
+                      or states(hp_operating_mode) not in ['Heat only', 'Cool only']
+                      or (states(hp_operating_mode) == 'Heat only'
+                          and heating_stop_required | bool(false))
+                      or (states(hp_operating_mode) == 'Cool only'
+                          and cooling_stop_required | bool(false))) }}
+        sequence:
+          - action: switch.turn_off
+            target:
+              entity_id:
+                - !input fancoil_livingroom
+                - !input floor_heating
+                - !input fancoil_upstairs
+      - alias: DHW demand control
+        conditions:
+          - condition: template
+            value_template: "{{ states(enable_dhw) == 'on' and states(hp_operating_mode) == 'DHW only' }}"
+        sequence:
+          - action: number.set_value
+            data:
+              value: "{{ [100, [30, dhw_demandcontrol_SP | float(40)] | max] | min }}"
+            target:
+              entity_id: !input hp_fake_demandcontrol
+          # Fancoils/floor are deliberately not switched off here. The hydraulic
+          # delayed-stop branch closes them only after the circulation pump is off.
+      - alias: Heating demand control
+        conditions:
+          - condition: template
+            value_template: >-
+              {{ states(enable_heating) == 'on'
+                 and house_temp_valid | bool(false)
+                 and outside_temp_valid | bool(false)
+                 and states(hp_operating_mode) == 'Heat only'
+                 and states(hp_z1_climate) == 'heat' }}
+        sequence:
+          - action: input_number.set_value
+            data:
+              value: >-
+                {% set mode = states(meter_mode) %}
+                {% set cur = states(powercontrol_sp_increase) | float(0) %}
+                {% set wp_kw = states(hp_s0_watt) | float(0) / 1000 %}
+                {% set prod = states(pap_power_production) | float(0) if mode == 'PAP' else states(sap_power_production) | float(0) if mode == 'SAP' else 0 %}
+                {% set boiler_kw = states(boiler_power) | float(0) / 1000 %}
+                {% set dimmer_pct = state_attr(boiler_dimmer, 'percentage') | float(100) %}
+                {% if dimmer_pct != 100 %}{% set prod = prod + boiler_kw %}{% endif %}
+                {% set hold_thr = 0.1 %}
+                {% set up_thr = 0.5 if wp_kw < 0.5 else 0.2 %}
+                {% set step = 0.2 %}
+                {% if states(solar_control) == 'on' %}
+                  {% if prod >= up_thr %}{% set new = cur + step %}
+                  {% elif prod > hold_thr %}{% set new = cur %}
+                  {% elif wp_kw < 0.5 and prod < 0.01 %}{% set new = cur - 2 * step %}
+                  {% else %}{% set new = cur - step %}{% endif %}
+                {% else %}{% set new = 0 %}{% endif %}
+                {{ [12, [0, new] | max] | min }}
+            target:
+              entity_id: !input powercontrol_sp_increase
+          - action: number.set_value
+            data:
+              value: "{{ [60, [25, water_temp_new_SP | float(35)] | max] | min }}"
+            target:
+              entity_id: !input hp_z1_heat_request_temp
+          - action: number.set_value
+            data:
+              value: "{{ water_demandcontrol_SP | float(5) }}"
+            target:
+              entity_id: !input hp_fake_demandcontrol
+          - if:
+              - condition: template
+                value_template: "{{ states(hp_compressor_freq) | float(0) > 10 }}"
+            then:
+              - choose:
+                  - conditions:
+                      - condition: template
+                        value_template: >-
+                          {{ ((outside_temp_PV | float(5) <= 6 and states(fancoil_upstairs) == 'on')
+                             or outside_temp_PV | float(5) <= 5)
+                             and now().strftime('%H:%M:%S') >= active_day_start_time
+                             and now().strftime('%H:%M:%S') < active_day_end_time }}
+                    sequence:
+                      - action: switch.turn_on
+                        target:
+                          entity_id: !input fancoil_upstairs
+                default:
+                  - action: switch.turn_off
+                    target:
+                      entity_id: !input fancoil_upstairs
+              - choose:
+                  - conditions:
+                      - condition: template
+                        value_template: >-
+                          {{ (outside_temp_PV | float(5) <= 11 and states(fancoil_livingroom) == 'on')
+                             or outside_temp_PV | float(5) <= 10 }}
+                    sequence:
+                      - action: switch.turn_on
+                        target:
+                          entity_id: !input fancoil_livingroom
+                default:
+                  - action: switch.turn_off
+                    target:
+                      entity_id: !input fancoil_livingroom
+              - action: switch.turn_on
+                target:
+                  entity_id: !input floor_heating
+      - alias: Cooling demand control
+        conditions:
+          - condition: template
+            value_template: >-
+              {{ states(enable_cooling) == 'on'
+                 and states(hp_operating_mode) == 'Cool only'
+                 and states(hp_compressor_binary) == 'on' }}
+        sequence:
+          - action: number.set_value
+            data:
+              value: "{{ cooling_water_temp_SP | float(10) }}"
+            target:
+              entity_id: !input hp_z1_cool_request_temp
+          - action: number.set_value
+            data:
+              value: "{{ water_demandcontrol_SP | float(5) }}"
+            target:
+              entity_id: !input hp_fake_demandcontrol
+          - action: switch.turn_on
+            target:
+              entity_id:
+                - !input fancoil_upstairs
+                - !input fancoil_livingroom
+          - if:
+              - condition: template
+                value_template: >-
+                  {{ house_temp_PV | float(20) > 24
+                     and states(cool_floor_permit_switch) == 'on'
+                     and floor_pump_restart_ready | bool(false) }}
+            then:
+              - action: switch.turn_on
+                target:
+                  entity_id: !input floor_heating
+            else:
+              - action: switch.turn_off
+                target:
+                  entity_id: !input floor_heating
+      - alias: Stopped / fallback
+        conditions: []
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ hydraulic_stop_ready | bool(false) }}"
+                sequence:
+                  - action: switch.turn_off
+                    target:
+                      entity_id:
+                        - !input fancoil_livingroom
+                        - !input floor_heating
+                        - !input fancoil_upstairs
+
+  - alias: DHW inline heater
+    choose:
+      - alias: Inline heater on with temperature and flow interlocks
+        conditions:
+          - condition: template
+            value_template: >-
+              {% set flow = states(water_pulse_meter) %}
+              {% set flow_ok = not inline_heater_requires_flow | bool(true)
+                   or (is_number(flow) and flow | float >= dhw_shower_flow_min | float) %}
+              {{ states(enable_dhw) == 'on'
+                 and dhw_sensor_valid | bool(false)
+                 and flow_ok
+                 and (dhw_temp_PV | float <= dhw_temp_inline_heater | float
+                      or (is_number(states(hp_outside_temp))
+                          and states(hp_outside_temp) | float <= inline_heater_cold_outside_threshold | float
+                          and dhw_temp_PV | float < dhw_temp_SP | float)) }}
+        sequence:
+          - if:
+              - condition: template
+                value_template: "{{ not allow_simultaneous_dhw_heaters | bool(false) }}"
+            then:
+              - action: fan.set_percentage
+                target:
+                  entity_id: !input boiler_dimmer
+                data:
+                  percentage: 1
+                continue_on_error: true
+              - action: switch.turn_off
+                target:
+                  entity_id: !input boiler_heater
+                continue_on_error: true
+          - action: switch.turn_on
+            target:
+              entity_id: !input inline_heater
+    default:
+      - action: switch.turn_off
+        target:
+          entity_id: !input inline_heater
+        continue_on_error: true
+
+  - alias: Electric boiler heater
+    choose:
+      - alias: Turn on - legionella run
+        conditions:
+          - condition: template
+            value_template: >-
+              {{ states(enable_dhw) == 'on'
+                 and boiler_dimmer_valid | bool(false)
+                 and legionella_electric_window | bool(false)
+                 and dhw_temp_PV | float < dhw_temp_legionella | float
+                 and (allow_simultaneous_dhw_heaters | bool(false)
+                      or states(inline_heater) != 'on') }}
+        sequence:
+          - action: fan.set_percentage
+            data:
+              percentage: 1
+            target:
+              entity_id: !input boiler_dimmer
+            continue_on_error: true
+          - action: switch.turn_on
+            target:
+              entity_id: !input boiler_heater
+          - action: fan.set_percentage
+            data:
+              percentage: 100
+            target:
+              entity_id: !input boiler_dimmer
+      - alias: Turn on - cooling DHW electric assist
+        conditions:
+          - condition: template
+            value_template: >-
+              {{ dhw_electric_assist_while_cooling | bool(true)
+                 and states(enable_dhw) == 'on'
+                 and boiler_dimmer_valid | bool(false)
+                 and states(hp_operating_mode) == 'Cool only'
+                 and not dhw_shower_likely | bool(false)
+                 and (allow_simultaneous_dhw_heaters | bool(false)
+                      or states(inline_heater) != 'on')
+                 and dhw_temp_PV | float < (dhw_temp_SP | float - dhw_cooling_electric_stop_offset | float)
+                 and (dhw_temp_PV | float <= (dhw_temp_SP | float - dhw_cooling_electric_start_offset | float)
+                      or states(boiler_heater) == 'on') }}
+        sequence:
+          - action: fan.set_percentage
+            target:
+              entity_id: !input boiler_dimmer
+            data:
+              percentage: 1
+            continue_on_error: true
+          - action: switch.turn_on
+            target:
+              entity_id: !input boiler_heater
+          - action: fan.set_percentage
+            target:
+              entity_id: !input boiler_dimmer
+            data:
+              percentage: "{{ [100, [1, dhw_cooling_electric_dimmer_percentage | int(100)] | max] | min }}"
+      - alias: Turn on/control - solar surplus
+        conditions:
+          - condition: template
+            value_template: >-
+              {% set mode = states(meter_mode) %}
+              {% set netto_raw = states(power_netto_pap) if mode == 'PAP' else states(power_netto_sap) if mode == 'SAP' else 'unknown' %}
+              {% set netto = netto_raw | float(0) %}
+              {% set ev_has_priority = states(ev_mode_select) == 'Solar' and states(ev_charge_current) | float(0) < 22.9 and states(ev_state) in ['Charging', 'Charging Stopped'] %}
+              {{ states(enable_dhw) == 'on'
+                 and states(solar_control) == 'on'
+                 and boiler_dimmer_valid | bool(false)
+                 and is_number(netto_raw)
+                 and dhw_temp_PV | float < dhw_high_temp_safety | float - 1
+                 and (allow_simultaneous_dhw_heaters | bool(false)
+                      or states(inline_heater) != 'on')
+                 and not ev_has_priority
+                 and (netto <= -0.15
+                      or (states(boiler_heater) == 'on' and netto < 0.10)) }}
+        sequence:
+          - if:
+              - condition: template
+                value_template: "{{ states(boiler_heater) == 'off' }}"
+            then:
+              - action: fan.set_percentage
+                data:
+                  percentage: 1
+                target:
+                  entity_id: !input boiler_dimmer
+                continue_on_error: true
+              - action: switch.turn_on
+                target:
+                  entity_id: !input boiler_heater
+          - action: fan.set_percentage
+            target:
+              entity_id: !input boiler_dimmer
+            data:
+              percentage: >-
+                {% set mode = states(meter_mode) %}
+                {% set netto = states(power_netto_pap) | float(0) if mode == 'PAP' else states(power_netto_sap) | float(0) %}
+                {% set target_kw = -0.1 %}
+                {% set huidige_pct = state_attr(boiler_dimmer, 'percentage') | float(0) %}
+                {% set error_kw = netto - target_kw %}
+                {% if error_kw > 0 %}
+                  {% set delta_pct = [-(error_kw * 1000 / 30) | round(0, 'floor'), 20] | min %}
+                {% else %}
+                  {% set delta_pct = [-(error_kw * 1000 / 22) | round(0, 'floor'), 20] | min %}
+                {% endif %}
+                {% set nieuw_pct = huidige_pct + delta_pct %}
+                {% if dhw_temp_PV | float >= dhw_high_temp_safety | float - 1 %}
+                  {% set nieuw_pct = [nieuw_pct, 20] | min %}
+                {% endif %}
+                {{ [[nieuw_pct, 1] | max, 99] | min | int }}
+      - alias: Turn on - ambient below zero and tank low
+        conditions:
+          - condition: template
+            value_template: >-
+              {{ is_number(states(hp_outside_temp))
+                 and states(hp_outside_temp) | float < 0.1
+                 and states(enable_dhw) == 'on'
+                 and boiler_dimmer_valid | bool(false)
+                 and (allow_simultaneous_dhw_heaters | bool(false)
+                      or states(inline_heater) != 'on')
+                 and dhw_temp_PV | float < (dhw_temp_SP | float - dhw_temp_dT | float) + 3
+                 and (dhw_temp_PV | float <= (dhw_temp_SP | float - dhw_temp_dT | float) + 1
+                      or states(boiler_heater) == 'on')
+                 and states(hp_threeway_valve) == 'Room' }}
+        sequence:
+          - action: fan.set_percentage
+            data:
+              percentage: 1
+            target:
+              entity_id: !input boiler_dimmer
+            continue_on_error: true
+          - action: switch.turn_on
+            target:
+              entity_id: !input boiler_heater
+          - action: fan.set_percentage
+            data:
+              percentage: 100
+            target:
+              entity_id: !input boiler_dimmer
+    default:
+      - action: fan.set_percentage
+        data:
+          percentage: 1
+        target:
+          entity_id: !input boiler_dimmer
+        continue_on_error: true
+      - action: switch.turn_off
+        target:
+          entity_id: !input boiler_heater
+        continue_on_error: true
